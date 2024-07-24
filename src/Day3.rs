@@ -22,31 +22,13 @@ fn main() {
 
     for (i, line) in lines.enumerate() {
         let num = find_nums_in_line(line, i as i32);
-        let mut split_line = line.split("").collect::<Vec<&str>>();
-        split_line.retain(|&x| x != "");
+        let split_line = line.split("").filter(|&x| x != "").collect::<Vec<&str>>();
         map.push(split_line);
         all_nums.extend(num);
     }
 
     for num in all_nums {
-        let bounds_start = NumPos { x: num.pos.x - 1, y: num.pos.y - 1 };
-        let bounds_end = NumPos { x: num.pos.x + num.length, y: num.pos.y + 1 };
-        let mut valid = false;
-        for y in bounds_start.y..bounds_end.y+1 {
-            for x in bounds_start.x..bounds_end.x+1 {
-                if y < 0 || x < 0 || y as usize >= map.len() || x as usize >= map[y as usize].len() {
-                    continue;
-                }
-                if map[y as usize][x as usize] != "." && !map[y as usize][x as usize].parse::<i32>().is_ok() {
-                    valid = true;
-                    break;
-                }
-            }
-            if valid {
-                break;
-            }
-        }
-        if valid {
+        if is_num_valid(&num, &map) {
             valid_nums.push(num.num);
         }
     }
@@ -75,4 +57,21 @@ fn find_nums_in_line(line: &str, line_num: i32) -> Vec<Num> {
         }
     }
     nums
+}
+
+fn is_num_valid(num: &Num, map: &[Vec<&str>]) -> bool {
+    let bounds_start = NumPos { x: num.pos.x - 1, y: num.pos.y - 1 };
+    let bounds_end = NumPos { x: num.pos.x + num.length, y: num.pos.y + 1 };
+
+    for y in bounds_start.y..=bounds_end.y {
+        for x in bounds_start.x..=bounds_end.x {
+            if y < 0 || x < 0 || y as usize >= map.len() || x as usize >= map[y as usize].len() {
+                continue;
+            }
+            if map[y as usize][x as usize] != "." && !map[y as usize][x as usize].parse::<i32>().is_ok() {
+                return true;
+            }
+        }
+    }
+    false
 }
